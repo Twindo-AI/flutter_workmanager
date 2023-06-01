@@ -49,6 +49,7 @@ class BackgroundWorker {
     /// The result is discardable due to how [BackgroundTaskOperation] works.
     @discardableResult
     func performBackgroundRequest(_ completionHandler: @escaping (UIBackgroundFetchResult) -> Void) -> Bool {
+        print("WORK HERE1")
         guard let callbackHandle = UserDefaultsHelper.getStoredCallbackHandle(),
             let flutterCallbackInformation = FlutterCallbackCache.lookupCallbackInformation(callbackHandle)
             else {
@@ -89,7 +90,7 @@ class BackgroundWorker {
             backgroundMethodChannel = nil
             flutterEngine = nil
         }
-
+ print("WORK HERE2")
         backgroundMethodChannel?.setMethodCallHandler { (call, result) in
             switch call.method {
             case BackgroundChannel.initialized:
@@ -113,6 +114,7 @@ class BackgroundWorker {
                         completionHandler(result)
                     })
             default:
+             print("WORK HERE3")
                 result(WMPError.unhandledMethod(call.method).asFlutterError)
                 cleanupFlutterResources()
                 completionHandler(UIBackgroundFetchResult.failed)

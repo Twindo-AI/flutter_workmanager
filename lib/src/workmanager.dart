@@ -188,7 +188,8 @@ class Workmanager {
     final Duration backoffPolicyDelay = Duration.zero,
     final OutOfQuotaPolicy? outOfQuotaPolicy,
     final Map<String, dynamic>? inputData,
-  }) async =>
+  }) async {
+    try {
       await _foregroundChannel.invokeMethod(
         "registerOneOffTask",
         JsonMapperHelper.toRegisterMethodArgument(
@@ -205,6 +206,11 @@ class Workmanager {
           inputData: inputData,
         ),
       );
+    } catch (e) {
+      print("ERR");
+      print(e);
+    }
+  }
 
   /// Schedules a periodic task that will run every provided [frequency].
   /// A [uniqueName] is required so only one task can be registered.

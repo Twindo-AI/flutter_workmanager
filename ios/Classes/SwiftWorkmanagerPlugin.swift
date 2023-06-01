@@ -52,25 +52,25 @@ public class SwiftWorkmanagerPlugin: FlutterPluginAppLifeCycleDelegate {
     @available(iOS 13.0, *)
     private static func handleBGProcessingTask(_ task: BGProcessingTask) {
         let operationQueue = OperationQueue()
-
+        print("OPERATION 1")
         // Create an operation that performs the main part of the background task
         let operation = BackgroundTaskOperation(
             task.identifier,
             flutterPluginRegistrantCallback: SwiftWorkmanagerPlugin.flutterPluginRegistrantCallback
         )
-
+ print("OPERATION 2")
         // Provide an expiration handler for the background task
         // that cancels the operation
         task.expirationHandler = {
             operation.cancel()
         }
-
+ print("OPERATION 3")
         // Inform the system that the background task is complete
         // when the operation completes
         operation.completionBlock = {
             task.setTaskCompleted(success: !operation.isCancelled)
         }
-
+ print("OPERATION 4")
         // Start the operation
         operationQueue.addOperation(operation)
     }
@@ -125,6 +125,7 @@ extension SwiftWorkmanagerPlugin: FlutterPlugin {
             result(true)
 
         case (ForegroundMethodChannel.Methods.RegisterOneOffTask.name, let .some(arguments)):
+        print("1 WORKMANAGER START")
             if !validateCallbackHandle() {
                 result(
                     FlutterError(
@@ -146,6 +147,7 @@ extension SwiftWorkmanagerPlugin: FlutterPlugin {
             }
 
             if #available(iOS 13.0, *) {
+                print("2 WORKMANAGER START")
                 let method = ForegroundMethodChannel.Methods.RegisterOneOffTask.self
                 guard let initialDelaySeconds =
                         arguments[method.Arguments.initialDelaySeconds.rawValue] as? Int64 else {
@@ -172,16 +174,30 @@ extension SwiftWorkmanagerPlugin: FlutterPlugin {
                 request.earliestBeginDate = Date(timeIntervalSinceNow: Double(initialDelaySeconds))
                 request.requiresExternalPower = requiresCharging
                 request.requiresNetworkConnectivity = requiresNetworkConnectivity
-
+                print("Received and starting")
                 do {
+                       print("3 WORKMANAGER START")
                     try BGTaskScheduler.shared.submit(request)
+                       print("33 WORKMANAGER START")
                     result(true)
                 } catch {
+                       print("4 WORKMANAGER START")
                     result(WMPError.bgTaskSchedulingFailed(error).asFlutterError)
                 }
+                
+   print("5 WORKMANAGER START")
+          let worker = BackgroundWorker(
+            mode: .backgroundTask(identifier: identifier),
+            flutterPluginRegistrantCallback: SwiftWorkmanagerPlugin.flutterPluginRegistrantCallback
+        )
 
+        worker.performBackgroundRequest { backgroundFetchResult in
+            // Handle background fetch result here
+            result(backgroundFetchResult == .newData)
+        }
                 return
             } else {
+                   print("6 WORKMANAGER START")
                 result(WMPError.unhandledMethod(call.method).asFlutterError)
             }
 
